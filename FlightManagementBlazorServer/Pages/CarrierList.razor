@@ -1,0 +1,42 @@
+﻿@page "/CarrierList"
+@inherits CarrierListBase;
+@attribute [Authorize]
+<h3>Carrier List</h3>
+<AuthorizeView Roles="Admin">
+    <button type="button" class="btn btn-success" @onclick="ShowAddCarrierPage">
+        <span class="oi oi-plus"></span>
+        Add Carrier
+    </button>
+</AuthorizeView>
+    @if (Carriers == null)
+    {
+<p>Loading...</p> }
+                else
+                {
+<table class="table table-responsive">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Country</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var carrier in Carriers)
+        {
+<tr>
+    <td>@carrier.Name</td>
+    <td>@carrier.Country</td>
+    <AuthorizeView Roles="Admin">
+        <td>
+            <button type="button" class="btn btn-primary" @onclick="() => OpenEditCarrierPage(carrier.Id)">
+                <span class="oi oi-pencil"></span>
+            </button>
+            <button type="button" class="btn btn-danger" @onclick="() => DeleteCarrierAsync(carrier.Id)">
+                <span class="oi oi-delete"></span>
+            </button>
+
+        </td>
+    </AuthorizeView>
+</tr>}
+    </tbody>
+</table>}

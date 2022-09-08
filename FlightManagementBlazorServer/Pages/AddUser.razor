@@ -1,0 +1,41 @@
+﻿@page "/AddUser"
+@inject UserService _userService
+@inject NavigationManager navigation
+@inject AuthenticationStateProvider AuthenticationState
+@attribute [Authorize(Roles = "Admin")]
+<h3>AddUser</h3>
+
+
+<div class="addUserForm">
+    <EditForm Model="@user" OnValidSubmit="@addUserToSystem">
+        <label for="Username">Username</label>
+        <InputText id="Username" @bind-Value="@user.Username" class="form-control"></InputText>
+        <label for="Password">Password</label>
+        <InputText id="Password" @bind-Value="@user.Password" class="form-control"></InputText>
+        <label for="Role">Is it Admin?</label>
+        <InputCheckbox id="Role" @bind-Value="@user.isAdmin" class="form-check">
+            <option value="True">Admin</option>
+            <option value="False">User</option>
+        </InputCheckbox>
+        <button type="submit" class="btn btn-success">Add user</button>
+    </EditForm>
+</div>
+
+@code {
+
+    public User user { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = new User();
+
+       
+    }
+
+    public async Task addUserToSystem()
+    {
+        _userService.AddUser(user);
+        navigation.NavigateTo("/FlightList");
+
+    }
+}

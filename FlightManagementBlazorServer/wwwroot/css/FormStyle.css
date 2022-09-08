@@ -1,0 +1,19 @@
+﻿
+body {
+}
+
+.Login {
+    display: flex;
+    flex-direction: row;
+    align-content: flex-start;
+    justify-content: space-around;
+}
+
+form{
+    width:40%
+}
+
+.title {
+    text-align: center;
+    margin-bottom: 30px;
+}

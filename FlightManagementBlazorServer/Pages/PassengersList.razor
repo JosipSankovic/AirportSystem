@@ -1,0 +1,109 @@
+﻿@page "/PassengerList/{flightId}"
+@inject PassengerService _passengerService
+@inject NavigationManager _navigation
+@attribute [Authorize]
+
+<h3>Passengers List</h3>
+@if (passengers == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+<table class="table table-responsive">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Lastname</th>
+            <th>Gender</th>
+            <th>Luggage Number</th>
+            <th>Luggage weight in kg</th>
+            <th>Remove passenger</th>
+            <th>Update passenger</th>
+            
+        </tr>
+    </thead>
+    <tbody>
+    
+    @foreach (var passenger in passengers)
+    {
+
+        <tr>
+            <td>@passenger.Name</td>
+            <td>@passenger.Lastname</td>
+            <td>@passenger.Gender</td>
+            <td>@passenger.NumberOfLuggage</td>
+            <td>@passenger.LuggageWeight</td>
+            
+            <td>
+                <button type="button" class="btn btn-secondary" @onclick="()=>DeletePassenger(passenger.Id)">
+                    <span  class="oi oi-delete"></span>
+                </button>
+            </td>
+            <td>
+                <button type="button" class="btn btn-dark" @onclick="()=>UpdatePassenger(passenger.Id)">
+                    <span class="oi oi-action-redo"></span>
+                </button>
+               
+            </td>
+            
+
+        </tr>
+
+    }
+
+        </tbody>
+     </table>
+    }
+
+<ConfirmationDialog @ref="@confirmationDialog" ConfirmationChanged="@OnDeleteConfirmation" Question="Delete passenger?"></ConfirmationDialog>
+
+
+    @code {
+        [Parameter]
+        public string flightId { get; set; }
+
+        private List<Passenger> passengers { get; set; }
+
+        public ConfirmationDialog confirmationDialog { get; set; }
+        public int SelecetedPassengerId { get; set; }
+
+
+
+
+        protected override async Task OnInitializedAsync()
+        {
+            passengers = await _passengerService.GetPassengersAsync(int.Parse(flightId));
+
+        }
+
+
+        private async Task DeletePassenger(int passengerId)
+        {
+            SelecetedPassengerId = passengerId;
+            confirmationDialog.Show();
+
+
+
+        }
+
+        public void UpdatePassenger(int passengerId)
+        {
+            _navigation.NavigateTo($"/EditPassenger/{passengerId}");
+        }
+
+        private async Task OnDeleteConfirmation(bool delete)
+        {
+            if (delete)
+            {
+                await _passengerService.DeletePassengerAsync(SelecetedPassengerId);
+                passengers = await _passengerService.GetPassengersAsync(int.Parse(flightId));
+            }
+
+        }
+
+
+
+
+
+    }

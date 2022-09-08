@@ -1,0 +1,86 @@
+﻿@page "/CheckedPassengerList/{flightId}"
+@inject PassengerService _passengerService
+@inject NavigationManager _navigationManager
+@attribute [Authorize]
+<h3>CheckedPassengersList</h3>
+@if (passengers != null)
+{
+    <table class="table table-responsive">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Lastname</th>
+                <th>Gender</th>
+                <th>Seat number</th>
+                <th>Check out</th>
+                <th>Document Details</th>
+                <th>Edit document details</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var passenger in passengers)
+            {
+                <tr>
+                    <td>@passenger.Name</td>
+                    <td>@passenger.Lastname</td>
+                    <td>@passenger.Gender</td>
+                    <td>@passenger.SeatNumber</td>
+
+                    <td>
+                        <button type="button" class="btn btn-secondary" @onclick="()=>CheckOutPassenger(passenger.Id)">
+                            <span class="oi oi-delete"></span>
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-group" @onclick="()=>ShowPassenger(passenger.DocumentName,passenger.DocumentLastname,passenger.DocumentNumber,passenger.DocumentType,passenger.DocumentExpirationDate)">
+                            <span class="oi oi-script"></span>
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-primary" @onclick="()=>EditPassengerDocument(passenger.Id)">
+                            <span class="oi oi-pencil"></span>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <NotificationDialog @ref="notificationDialog" Description="@PassengerDocumentInfo"></NotificationDialog>
+}
+
+@code {
+    [Parameter]
+    public string flightId { get; set; }
+    public List<Passenger> passengers { get; set; }
+
+    private NotificationDialog notificationDialog { get; set; }
+    public string PassengerDocumentInfo { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        passengers = await _passengerService.GetCheckedPassengersAsync(int.Parse(flightId));
+    }
+
+    public async Task CheckOutPassenger(int passengerId)
+    {
+        await _passengerService.CheckOutPassengerAsync(passengerId);
+
+        passengers = await _passengerService.GetCheckedPassengersAsync(int.Parse(flightId));
+    }
+
+    private void ShowPassenger(string DocumentName, string DocumentLastname, string DocumentNumber, string DocumentType, DateTime? DocumentExpirationDate)
+    {
+
+        PassengerDocumentInfo = $"<p> Document name: {DocumentName} <br/> Document Lastname: {DocumentLastname} <br/> Document Number: {DocumentNumber} <br/> Document Type: {DocumentType} <br/> Document Expiration Date: {DocumentExpirationDate.Value.Date.ToString()}<p>";
+        notificationDialog.Show();
+
+
+    }
+
+    private void EditPassengerDocument(int passengerId)
+    {
+        _navigationManager.NavigateTo($"/EditPassengerDocument/{passengerId}");
+    }
+
+}
+    

@@ -1,0 +1,109 @@
+﻿@page "/EditPassenger/{passengerId}"
+@using System.Text; 
+@inject PassengerService _passengerService
+@inject NavigationManager _navigation
+@attribute [Authorize]
+
+
+<h3>UpdatePassenger</h3>
+
+
+@if (passenger == null)
+{
+    <p>Loading...</p> }
+else
+{
+    <EditForm Model="@passenger" OnValidSubmit="@UpdatePassengerAsync">
+        <PassengerFields passenger="@passenger"></PassengerFields>
+        <button type="submit" class="btn btn-success">
+            <span class="oi-pencil"></span>
+            Update passenger
+        </button>
+        <button type="button" class="btn btn-secondary" @onclick="Close">
+            <span class="oi oi-media-skip-backward"></span>
+            Close
+        </button>
+    </EditForm>
+    
+}
+
+<NotificationDialog @ref="@_notificationDialog" Description="@notification"></NotificationDialog>
+@code {
+    [Parameter]
+    public string passengerId { get; set; }
+
+    public Passenger passenger { get; set; }
+
+    public NotificationDialog _notificationDialog { get; set; }
+    public string notification { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        passenger = await _passengerService.GetPassengerAsync(int.Parse(passengerId));
+    }
+
+    private async Task UpdatePassengerAsync()
+    {
+        var validationErrors = ValidatePassenger();
+        if (!validationErrors.Any())
+        {
+
+            await _passengerService.UpdatePassengerAsync(passenger);
+            Close();
+
+        }
+        else
+        {
+            notification = GetConcatenatedValidationErrors(validationErrors);
+            _notificationDialog.Show();
+        }
+    }
+
+    private void Close()
+    {
+        _navigation.NavigateTo($"/PassengerList/{passenger.FlightId}");
+    }
+
+    private List<ValidationError> ValidatePassenger()
+    {
+        List<ValidationError> validationErrors = new List<ValidationError>();
+
+        if (string.IsNullOrWhiteSpace(passenger.Name))
+        {
+            validationErrors.Add(new ValidationError { Description = "Add passenger name" });
+        }
+        if (string.IsNullOrWhiteSpace(passenger.Lastname))
+        {
+            validationErrors.Add(new ValidationError { Description = "Add passenger lastname" });
+        }
+        if (passenger.NumberOfLuggage == null)
+        {
+            validationErrors.Add(new ValidationError { Description = "Add Luggage number" });
+        }
+        if (passenger.LuggageWeight == null)
+        {
+            validationErrors.Add(new ValidationError { Description = "Add Luggage weight" });
+        }
+
+
+
+
+        return validationErrors;
+    }
+
+    private string GetConcatenatedValidationErrors(List<ValidationError> ValidationErrors)
+    {
+        StringBuilder message = new StringBuilder();
+        foreach (var error in ValidationErrors)
+        {
+            if (message.Length == 0)
+                message.Append(error.Description);
+            else
+                message.Append($"<br/> {error.Description}");
+
+        }
+        return message.ToString();
+    }
+
+}

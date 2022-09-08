@@ -1,0 +1,116 @@
+﻿@page "/EditPassengerDocument/{passengerId}"
+@using System.Text; 
+@inject NavigationManager _navigationMenager
+@inject PassengerService _passengerService
+@attribute [Authorize]
+
+<h3>Edit Passenger Document</h3>
+@if (passenger != null)
+{
+<EditForm Model="@passenger" OnValidSubmit="@EditCheckedIn">
+   
+   
+    <label for="DocumentDate">Expiration date</label>
+    <InputDate id="DocumentDate" @bind-Value="@passenger.DocumentExpirationDate" class="form-control"></InputDate>
+
+    <label for="DocumentName">Name in document</label>
+    <InputText id="DocumentName" @bind-Value="@passenger.DocumentName" class="form-control"></InputText>
+
+    <label for="DocumentLastname">Lastname in document</label>
+    <InputText id="DocumentLastname" @bind-Value="@passenger.DocumentLastname" class="form-control"></InputText>
+
+    <label for="DocumentType">Document type</label>
+    <InputSelect id="DocumentType" @bind-Value="@passenger.DocumentType" class="form-control">
+        <option value="Passport">Passport</option>
+        <option value="ID card">ID card</option>
+    </InputSelect>
+
+    <label for="DocumentNumber">Document number</label>
+    <InputText id="DocumentNumber" @bind-Value="@passenger.DocumentNumber" class="form-control"></InputText>
+
+
+
+
+    <button type="submit">Edit passenger document</button>
+</EditForm>
+            }
+            else
+            {
+                <p>Loading...</p>
+            }
+<NotificationDialog @ref="@_notificationDialog" Description="@notification"></NotificationDialog>
+
+@code {
+    [Parameter]
+    public string passengerId { get; set; }
+    public Passenger passenger { get; set; }
+
+    public NotificationDialog _notificationDialog { get; set; }
+    public string notification { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        passenger = await _passengerService.GetPassengerAsync(int.Parse(passengerId));
+
+    }
+
+    private async Task EditCheckedIn()
+    {
+        var validationError = ValidatePassenger();
+
+        if (validationError.Any())
+        {
+            notification = GetConcatenatedValidationErrors(validationError);
+            _notificationDialog.Show();
+        }
+        else
+        {
+            await _passengerService.UpdatePassengerAsync(passenger);
+
+            _navigationMenager.NavigateTo($"/CheckedPassengerList/{passenger.FlightId}");
+        }
+
+
+    }
+
+    private List<ValidationError> ValidatePassenger()
+    {
+        List<ValidationError> validationErrors = new List<ValidationError>();
+
+        if (string.IsNullOrWhiteSpace(passenger.DocumentLastname))
+        {
+            validationErrors.Add(new ValidationError { Description = "Add Document Last name" });
+        }
+        if (string.IsNullOrWhiteSpace(passenger.DocumentName))
+        {
+            validationErrors.Add(new ValidationError { Description = "Add Document Name" });
+        }
+
+        if (string.IsNullOrWhiteSpace(passenger.DocumentNumber))
+        {
+            validationErrors.Add(new ValidationError { Description = "Add Document Number" });
+        }
+
+
+
+
+        return validationErrors;
+    }
+
+    private string GetConcatenatedValidationErrors(List<ValidationError> ValidationErrors)
+    {
+        StringBuilder message = new StringBuilder();
+        foreach (var error in ValidationErrors)
+        {
+            if (message.Length == 0)
+                message.Append(error.Description);
+            else
+                message.Append($"<p> {error.Description}</p><br/>");
+
+        }
+        return message.ToString();
+    }
+
+
+}

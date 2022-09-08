@@ -1,0 +1,52 @@
+﻿@page "/"
+@layout LoginLayout
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationState
+@inject NavigationManager Navigator
+@inject UserService _userService
+<h1 class="card-title title">Login site</h1>
+    <div class="Login">
+        
+        <EditForm Model="@user" OnValidSubmit="@Log">
+            <h3>Login </h3>
+            <label for="Username">Username</label>
+            <InputText id="Username" @bind-Value="@user.Username" class="form-control"></InputText>
+            <label for="Password">Password</label>
+            <InputText id="Password" @bind-Value="@user.Password" class="form-control"></InputText>
+
+            <button type="submit" class="btn btn-success">Log in</button>
+        </EditForm>
+    </div>
+    @if (userAuthenticated != null)
+    {
+        <p>@userAuthenticated</p>
+    }
+    @code {
+        string userAuthenticated;
+        public User user { get; set; }
+
+        protected override async Task OnInitializedAsync()
+        {
+            user = new User();
+
+            await ((Authentification.UserAuthentication)AuthenticationState).GetAuthenticationStateAsync();
+
+        }
+
+        public async Task Log()
+        {
+            var response = await _userService.UserExist(user);
+            if (response == "Admin" || response == "CheckIn")
+            {
+                ((Authentification.UserAuthentication)AuthenticationState).CreateUser(user.Username, response);
+                Navigator.NavigateTo("/FlightList");
+            }
+            else
+            {
+                userAuthenticated = "Pokušajte ponovno";
+            }
+
+
+
+        }
+    }
